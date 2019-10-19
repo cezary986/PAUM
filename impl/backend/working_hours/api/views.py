@@ -34,6 +34,19 @@ class VersionView(APIView):
         serializer = VersionSerializer({'version': VERSION})
         return JsonResponse(serializer.data)
 
+class UserGroupsView(APIView):
+    permission_classes = (IsAuthenticated,)
+  
+    @swagger_auto_schema(
+        operation_id='groups',
+        operation_description='Return user groups',
+        responses={200: VersionSerializer}
+    )
+    def get(self, request):
+        groups = request.user.groups.values_list('name', flat = True)
+        groups_names_list = list(groups)
+        return JsonResponse(groups_names_list, safe=False, status=200)                                    
+
 class CodeView(APIView):
     permission_classes = (IsAuthenticated,)
   
@@ -111,6 +124,7 @@ class EmployeesView(APIView):
             return JsonResponse(serializer.data, safe=False, status=403)
         
 class WorkHoursView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def check_if_user_is_employee(self, user):
         return user.groups.filter(name='Employee').exists()
