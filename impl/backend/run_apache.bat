@@ -1,0 +1,1 @@
+C:\Users\cezar\OneDrive\Dokumenty\apache24\bin\httpd.exe -f "C:\Users\cezar\OneDrive\Dokumenty\apache24\conf\paum.conf"
