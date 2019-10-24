@@ -21,7 +21,7 @@ import pl.polsl.workinghours.data.user.UserRepository;
  */
 public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFactory {
 
-    private Context context;
+    private Application context;
 
     /**
      * Creates a {@code AndroidViewModelFactory}
@@ -31,7 +31,7 @@ public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFact
     public UserViewModelFactory(@NonNull Application application) {
         super(application);
 
-        this.context = application.getApplicationContext();
+        this.context = application;
     }
 
     @NonNull
@@ -41,6 +41,7 @@ public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFact
         if (modelClass.isAssignableFrom(UserViewModel.class)) {
             RequestQueueProvider requestQueueProvider = RequestQueueProvider.getInstance(this.context);
             return (T) new UserViewModel(
+                    this.context,
                     new UserRepository(
                             new UserDataSource(RequestQueueProvider.getInstance(context)
                     ), AuthRepository.getInstance(new CredentialDataSource(), RequestQueueProvider.getInstance(context))

@@ -1,6 +1,10 @@
 package pl.polsl.workinghours.data.user;
 
+import android.accounts.AuthenticatorException;
+import android.content.Context;
+
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import pl.polsl.workinghours.data.auth.AuthRepository;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
@@ -28,17 +32,45 @@ public class UserRepository {
         return instance;
     }
 
-    public void getUserGroups(MutableLiveData<DataWrapper<String[]>> result) {
-        this.userDataSource.getUserGroups(
-                this.authRepository.getStoredAccessToken(),
-                result
-        );
+    public void getUserGroups(MutableLiveData<DataWrapper<String[]>> result, Context context) {
+        Observer<DataWrapper<String>> tokenObserver = stringDataWrapper -> {
+            if (stringDataWrapper.isOk()) {
+                String accessToken = stringDataWrapper.getSuccess();
+                userDataSource.getUserGroups(accessToken, result);
+            } else {
+                //TODO  Handle error
+            }
+        };
+        MutableLiveData<DataWrapper<String>> mutableLiveData = null;
+        try {
+            mutableLiveData = this.authRepository.getAccessToken(context);
+            mutableLiveData.observeForever(tokenObserver);
+        } catch (AuthenticatorException e) {
+            //TODO  Handle error
+        } finally {
+            if (mutableLiveData != null)
+                mutableLiveData.removeObserver(tokenObserver);
+        }
     }
 
-    public void getUser(MutableLiveData<DataWrapper<User>> result) {
-        this.userDataSource.getProfile(
-                this.authRepository.getStoredAccessToken(),
-                result
-        );
+    public void getUser(MutableLiveData<DataWrapper<User>> result, Context context) {
+        Observer<DataWrapper<String>> tokenObserver = stringDataWrapper -> {
+            if (stringDataWrapper.isOk()) {
+                String accessToken = stringDataWrapper.getSuccess();
+                userDataSource.getProfile(accessToken, result);
+            } else {
+                //TODO  Handle error
+            }
+        };
+        MutableLiveData<DataWrapper<String>> mutableLiveData = null;
+        try {
+            mutableLiveData = this.authRepository.getAccessToken(context);
+            mutableLiveData.observeForever(tokenObserver);
+        } catch (AuthenticatorException e) {
+            //TODO  Handle error
+        } finally {
+            if (mutableLiveData != null)
+                mutableLiveData.removeObserver(tokenObserver);
+        }
     }
 }

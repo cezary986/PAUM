@@ -5,11 +5,9 @@ import android.content.Context;
 
 import androidx.lifecycle.MutableLiveData;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
@@ -19,12 +17,7 @@ import org.json.JSONObject;
 
 import pl.polsl.workinghours.Enviroment;
 import pl.polsl.workinghours.data.RequestQueueProvider;
-import pl.polsl.workinghours.data.login.LoginDataSource;
-import pl.polsl.workinghours.data.login.LoginRepository;
-import pl.polsl.workinghours.data.model.LoginResponse;
 import pl.polsl.workinghours.data.model.TokenRefreshResponse;
-import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.network.JsonRequest;
 import pl.polsl.workinghours.ui.login.DataWrapper;
 
 public class AuthRepository {
@@ -50,6 +43,14 @@ public class AuthRepository {
         return instance;
     }
 
+    /**
+     * Metoda zwracająca access token
+     *
+     * @param context kontekt
+     * @return opakowanie z access kodem w środku
+     * @throws AuthenticatorException gdy nie ma access tokena ani refresh tokena
+     * by pobrac nowy
+     */
     public MutableLiveData<DataWrapper<String>> getAccessToken(Context context) throws AuthenticatorException {
         if (this.accessToken != null && !this.isAccessTokenExpired()) {
             MutableLiveData<DataWrapper<String>> result = new MutableLiveData<>();
@@ -110,10 +111,6 @@ public class AuthRepository {
         };
         this.queueProvider.addToRequestQueue(jsonArrayRequest);
         return result;
-    }
-
-    public String getStoredAccessToken() {
-        return this.accessToken;
     }
 
     private boolean isAccessTokenExpired() {
