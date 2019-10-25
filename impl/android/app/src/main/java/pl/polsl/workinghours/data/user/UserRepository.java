@@ -1,15 +1,10 @@
 package pl.polsl.workinghours.data.user;
-
 import android.accounts.AuthenticatorException;
 import android.content.Context;
-
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
-
 import pl.polsl.workinghours.data.auth.AuthRepository;
-import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.ui.login.DataWrapper;
+import rx.Observable;
+import rx.subjects.BehaviorSubject;
 
 public class UserRepository {
 
@@ -18,59 +13,45 @@ public class UserRepository {
     private UserDataSource userDataSource;
     private AuthRepository authRepository;
 
-    public UserRepository(
+    private UserRepository(
             UserDataSource userDataSource,
             AuthRepository authRepository) {
         this.userDataSource = userDataSource;
         this.authRepository = authRepository;
     }
 
-    public UserRepository getInstance(UserDataSource userDataSource, AuthRepository authRepository) {
+    public static UserRepository getInstance(UserDataSource userDataSource, AuthRepository authRepository) {
         if (instance == null) {
             instance = new UserRepository(userDataSource, authRepository);
         }
         return instance;
     }
 
-    public void getUserGroups(MutableLiveData<DataWrapper<String[]>> result, Context context) {
-        Observer<DataWrapper<String>> tokenObserver = stringDataWrapper -> {
-            if (stringDataWrapper.isOk()) {
-                String accessToken = stringDataWrapper.getSuccess();
-                userDataSource.getUserGroups(accessToken, result);
-            } else {
-                //TODO  Handle error
-            }
-        };
-        MutableLiveData<DataWrapper<String>> mutableLiveData = null;
+    public Observable<String[]> getUserGroups(Context context) {
         try {
-            mutableLiveData = this.authRepository.getAccessToken(context);
-            mutableLiveData.observeForever(tokenObserver);
+            return this.authRepository.getAccessToken(context)
+                    .first()
+                    .flatMap(accessToken -> userDataSource.getUserGroups(accessToken));
         } catch (AuthenticatorException e) {
-            //TODO  Handle error
-        } finally {
-            if (mutableLiveData != null)
-                mutableLiveData.removeObserver(tokenObserver);
+            BehaviorSubject<String[]> result = BehaviorSubject.create();
+            BehaviorSubject.create().onError(e);
+            e.printStackTrace();
+            return result;
         }
     }
 
-    public void getUser(MutableLiveData<DataWrapper<User>> result, Context context) {
-        Observer<DataWrapper<String>> tokenObserver = stringDataWrapper -> {
-            if (stringDataWrapper.isOk()) {
-                String accessToken = stringDataWrapper.getSuccess();
-                userDataSource.getProfile(accessToken, result);
-            } else {
-                //TODO  Handle error
-            }
-        };
-        MutableLiveData<DataWrapper<String>> mutableLiveData = null;
+    public Observable<User> getUser(Context context) {
         try {
-            mutableLiveData = this.authRepository.getAccessToken(context);
-            mutableLiveData.observeForever(tokenObserver);
+            return this.authRepository.getAccessToken(context)
+                    .first()
+                    .flatMap(accessToken -> {
+                        return userDataSource.getProfile(accessToken);
+                    });
         } catch (AuthenticatorException e) {
-            //TODO  Handle error
-        } finally {
-            if (mutableLiveData != null)
-                mutableLiveData.removeObserver(tokenObserver);
+            BehaviorSubject<User> result = BehaviorSubject.create();
+            BehaviorSubject.create().onError(e);
+            e.printStackTrace();
+            return result;
         }
     }
 }

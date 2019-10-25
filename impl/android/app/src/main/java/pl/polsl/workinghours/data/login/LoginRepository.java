@@ -1,16 +1,10 @@
 package pl.polsl.workinghours.data.login;
-
+import android.accounts.AuthenticatorException;
 import android.content.Context;
-
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
-
-import org.json.JSONException;
-
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.model.LoginResponse;
-import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.ui.login.DataWrapper;
+import pl.polsl.workinghours.data.model.TokenRefreshResponse;
+import rx.Observable;
 
 /**
  * Class that requests authentication and user information from the remote data source and
@@ -21,11 +15,6 @@ public class LoginRepository {
     private static volatile LoginRepository instance;
     private LoginDataSource loginDataSource;
     private CredentialDataSource credentialDataSource;
-
-    private String accessToken;
-    private String refreshToken;
-
-    private MutableLiveData<DataWrapper<LoginResponse>> loginResult;
 
     // private constructor : singleton access
     private LoginRepository(LoginDataSource loginDataSource, CredentialDataSource credentialDataSource) {
@@ -54,11 +43,16 @@ public class LoginRepository {
         }
     }
 
-    public MutableLiveData<DataWrapper<LoginResponse>> login(String username, String password, Context context, MutableLiveData<DataWrapper<LoginResponse>> result) throws JSONException {
-        if (this.loginResult == null) {
-            this.loginResult = new MutableLiveData<>();
+    public Observable<LoginResponse> login(String username, String password, Context context) {
+        return this.loginDataSource.login(username, password, context);
+    }
+
+    public Observable<TokenRefreshResponse> refreshToken(Context context) throws AuthenticatorException {
+        try {
+            return this.loginDataSource.login(this.credentialDataSource.getRefreshToken(context));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new AuthenticatorException("Failed to refresh token");
         }
-        this.loginDataSource.login(username, password, context, result);
-        return this.loginResult;
     }
 }

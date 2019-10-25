@@ -1,125 +1,76 @@
 package pl.polsl.workinghours.data.login;
-
 import android.content.Context;
-import android.widget.Toast;
-
-import androidx.lifecycle.MutableLiveData;
-
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import com.kymjs.rxvolley.RxVolley;
+import com.kymjs.rxvolley.client.HttpParams;
 import pl.polsl.workinghours.Enviroment;
-import pl.polsl.workinghours.data.RequestQueueProvider;
 import pl.polsl.workinghours.data.auth.AuthRepository;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.model.LoginResponse;
-import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.ui.login.DataWrapper;
-
-import java.io.IOException;
+import pl.polsl.workinghours.data.model.TokenRefreshResponse;
+import rx.Observable;
+import rx.Observer;
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.
  */
 public class LoginDataSource {
 
-    private RequestQueueProvider requestQueueProvider;
     private CredentialDataSource credentialDataSource;
 
-    public LoginDataSource(
-            RequestQueueProvider requestQueueProvider,
-            CredentialDataSource credentialDataSource) {
-        this.requestQueueProvider = requestQueueProvider;
+    public LoginDataSource(CredentialDataSource credentialDataSource) {
         this.credentialDataSource = credentialDataSource;
     }
 
-    public void login(
-            String username,
-            String password,
-            Context context,
-            MutableLiveData<DataWrapper<LoginResponse>> result) throws JSONException {
+    public Observable<LoginResponse> login(String username, String password, Context context) {
 
-        String url = Enviroment.Endpoints.LOGIN.getUrl();
-        JSONObject body = new JSONObject();
-        body.put("username", username);
-        body.put("password", password);
-        final int[] statusCode = new int[1];
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, response -> {
-            LoginResponse loginResponse = new Gson().fromJson(response.toString(), LoginResponse.class);
-            AuthRepository authRepository = AuthRepository.getInstance(new CredentialDataSource(), requestQueueProvider);
-            authRepository.setAccessToken(loginResponse.access);
-            authRepository.setRefreshToken(loginResponse.refresh, context);
-            this.credentialDataSource.setAccessToken(loginResponse.access);
-            this.credentialDataSource.saveRefreshToken(loginResponse.refresh, context);
-            result.postValue(new DataWrapper<>(loginResponse));
-        }, volleyerror -> {
-            switch (statusCode[0]) {
-                case 500:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.SERVER_ERROR_500));
-                    break;
-                case 401:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.WRONG_CREDENTIALS));
-                    break;
-                default:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNDEFINED_ERROR));
-                    break;
-            }
-        }) {
-            @Override
-            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-                statusCode[0] = response.statusCode;
-                return super.parseNetworkResponse(response);
-            }
-        };
-        this.requestQueueProvider.addToRequestQueue(request);
+        HttpParams params = new HttpParams();
+        //request parameters
+        JsonObject body = new JsonObject();
+        body.addProperty("username", username);
+        body.addProperty("password", password);
+        params.putJsonParams(body.toString());
+
+        return new RxVolley.Builder()
+                .url(Enviroment.Endpoints.LOGIN.getUrl())
+                .httpMethod(RxVolley.Method.POST)
+                .cacheTime(Enviroment.REQUEST_CACHE_TIME)
+                .contentType(RxVolley.ContentType.JSON)
+                .params(params)
+                .getResult()
+                .map(result -> {
+                    String responseJson = new String(result.data);
+                    LoginResponse response = new Gson().fromJson(responseJson, LoginResponse.class);
+                    AuthRepository authRepository = AuthRepository.getInstance(new CredentialDataSource());
+                    authRepository.setAccessToken(response.access);
+                    authRepository.setRefreshToken(response.refresh, context);
+                    credentialDataSource.setAccessToken(response.access);
+                    credentialDataSource.saveRefreshToken(response.refresh, context);
+                    return response;
+                });
     }
 
-    public void login(
-            String refreshToken,
-            MutableLiveData<DataWrapper<LoginResponse>> result
-    ) throws JSONException {
-        String url = Enviroment.Endpoints.LOGIN.getUrl();
-        JSONObject body = new JSONObject();
-        body.put("refresh", refreshToken);
-        final int[] statusCode = new int[1];
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, response -> {
-            LoginResponse loginResponse = new Gson().fromJson(response.toString(), LoginResponse.class);
-            AuthRepository authRepository = AuthRepository.getInstance(new CredentialDataSource(), requestQueueProvider);
-            authRepository.setAccessToken(loginResponse.access);
-            loginResponse.refresh = refreshToken;
-            this.credentialDataSource.setAccessToken(loginResponse.access);
-            result.postValue(new DataWrapper<>(loginResponse));
-        }, volleyerror -> {
-            switch (statusCode[0]) {
-                case 500:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.SERVER_ERROR_500));
-                    break;
-                case 401:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.WRONG_CREDENTIALS));
-                    break;
-                default:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNDEFINED_ERROR));
-                    break;
-            }
-        }) {
-            @Override
-            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
-                statusCode[0] = response.statusCode;
-                return super.parseNetworkResponse(response);
-            }
-        };
-        this.requestQueueProvider.addToRequestQueue(request);
+    public Observable<TokenRefreshResponse> login(String refreshToken) {
+        HttpParams params = new HttpParams();
+        JsonObject body = new JsonObject();
+        body.addProperty("refresh", refreshToken);
+        params.putJsonParams(body.getAsString());
+
+        return new RxVolley.Builder()
+                .url(Enviroment.Endpoints.LOGIN.getUrl())
+                .httpMethod(RxVolley.Method.POST)
+                .cacheTime(Enviroment.REQUEST_CACHE_TIME)
+                .contentType(RxVolley.ContentType.JSON)
+                .params(params)
+                .getResult()
+                .map(result -> {
+                    String resultJson = new String(result.data);
+                    TokenRefreshResponse loginResponse = new Gson().fromJson(resultJson, TokenRefreshResponse.class);
+                    AuthRepository authRepository = AuthRepository.getInstance(new CredentialDataSource());
+                    authRepository.setAccessToken(loginResponse.access);
+                    return loginResponse;
+                });
     }
 
     public void logout(String refreshToken) {
@@ -127,10 +78,15 @@ public class LoginDataSource {
         JWT nie ma mechanizmu wylogowania jako tako. Ale wystarczy wymienic
         token na nowy i go nie zapamiętywać
          */
-        try {
-            this.login(refreshToken, new MutableLiveData<>());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        this.login(refreshToken).first().subscribe(new Observer<TokenRefreshResponse>() {
+            @Override
+            public void onCompleted() { }
+
+            @Override
+            public void onError(Throwable e) { }
+
+            @Override
+            public void onNext(TokenRefreshResponse tokenRefreshResponse) { }
+        });
     }
 }

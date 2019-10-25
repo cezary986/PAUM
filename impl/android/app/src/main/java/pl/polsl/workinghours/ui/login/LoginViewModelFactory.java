@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
 
-import pl.polsl.workinghours.data.RequestQueueProvider;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.login.LoginDataSource;
 import pl.polsl.workinghours.data.login.LoginRepository;
@@ -36,13 +35,12 @@ public class LoginViewModelFactory extends ViewModelProvider.AndroidViewModelFac
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(LoginViewModel.class)) {
-            RequestQueueProvider requestQueueProvider = RequestQueueProvider.getInstance(this.context);
             CredentialDataSource credentialDataSource = new CredentialDataSource();
             return (T) new LoginViewModel(
                     LoginRepository.getInstance(
-                            new LoginDataSource(
-                                    requestQueueProvider, credentialDataSource
-                            ), credentialDataSource));
+                            new LoginDataSource(credentialDataSource),
+                            credentialDataSource
+                    ));
         } else {
             throw new IllegalArgumentException("Unknown ViewModel class");
         }

@@ -9,4 +9,9 @@
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
+    <!-- Errors -->
+    <string name="unknown_server_error_500">"Coś poszło nie tak po stronie serwera…"</string>
+    <string name="unknown_error">"Coś poszło nie tak…"</string>
+    <string name="login_error_401">"Niepoprawny login lub hasło"</string>
+    <string name="server_error_403">"Brak uprawnień do operacji"</string>
 </resources>

@@ -1,92 +1,42 @@
 package pl.polsl.workinghours.data.user;
-
-import androidx.lifecycle.MutableLiveData;
-
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.Response;
 import com.google.gson.Gson;
-
+import com.kymjs.rxvolley.RxVolley;
+import com.kymjs.rxvolley.client.HttpParams;
 import pl.polsl.workinghours.Enviroment;
-import pl.polsl.workinghours.data.RequestQueueProvider;
 import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.network.JsonRequest;
-import pl.polsl.workinghours.ui.login.DataWrapper;
+import rx.Observable;
 
 public class UserDataSource {
 
-    private RequestQueueProvider requestQueueProvider;
-
-    public UserDataSource(RequestQueueProvider requestQueueProvider
-    ) {
-        this.requestQueueProvider = requestQueueProvider;
+    public Observable<String[]> getUserGroups(String accessToken) {
+        HttpParams params = new HttpParams();
+        params.putHeaders("Authorization", "Bearer " + accessToken);
+        return new RxVolley.Builder()
+                .url(Enviroment.Endpoints.GROUPS.getUrl())
+                .httpMethod(RxVolley.Method.GET)
+                .cacheTime(Enviroment.REQUEST_CACHE_TIME)
+                .contentType(RxVolley.ContentType.JSON)
+                .params(params)
+                .getResult()
+                .map(result -> {
+                    String responseJson = new String(result.data);
+                    return new Gson().fromJson(responseJson, String[].class);
+                });
     }
 
-    public void getUserGroups(String accessToken, MutableLiveData<DataWrapper<String[]>> result) {
-        String url = Enviroment.Endpoints.GROUPS.getUrl();
-        final int[] statusCode = new int[1];
-
-        JsonRequest request = new JsonRequest(
-                Request.Method.GET,
-                url,
-                null,
-                accessToken,
-                response -> {
-                    String[] groups = new Gson().fromJson(response, String[].class);
-                    result.postValue(new DataWrapper<>(groups));
-                }, volleyerror -> {
-            switch (statusCode[0]) {
-                case 500:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.SERVER_ERROR_500));
-                    break;
-                case 401:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNATHORIZED));
-                    break;
-                default:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNDEFINED_ERROR));
-                    break;
-            }
-        }) {
-            @Override
-            protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                statusCode[0] = response.statusCode;
-                return super.parseNetworkResponse(response);
-            }
-        };
-        this.requestQueueProvider.addToRequestQueue(request);
-    }
-
-    public void getProfile(String accessToken, MutableLiveData<DataWrapper<User>> result) {
-        String url = Enviroment.Endpoints.GROUPS.getUrl();
-        final int[] statusCode = new int[1];
-
-        JsonRequest request = new JsonRequest(
-                Request.Method.GET,
-                url,
-                null,
-                accessToken,
-                response -> {
-                    User profile = new Gson().fromJson(response, User.class);
-                    result.postValue(new DataWrapper<>(profile));
-                }, volleyerror -> {
-            switch (statusCode[0]) {
-                case 500:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.SERVER_ERROR_500));
-                    break;
-                case 401:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNATHORIZED));
-                    break;
-                default:
-                    result.postValue(new DataWrapper<>(DataWrapper.ErrorCodes.UNDEFINED_ERROR));
-                    break;
-            }
-        }) {
-            @Override
-            protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                statusCode[0] = response.statusCode;
-                return super.parseNetworkResponse(response);
-            }
-        };
-        this.requestQueueProvider.addToRequestQueue(request);
+    public Observable<User> getProfile(String accessToken) {
+        HttpParams params = new HttpParams();
+        params.putHeaders("Authorization", "Bearer " + accessToken);
+        return new RxVolley.Builder()
+                .url(Enviroment.Endpoints.PROFILE.getUrl())
+                .httpMethod(RxVolley.Method.GET)
+                .cacheTime(Enviroment.REQUEST_CACHE_TIME)
+                .contentType(RxVolley.ContentType.JSON)
+                .params(params)
+                .getResult()
+                .map(result -> {
+                    String responseJson = new String(result.data);
+                    return new Gson().fromJson(responseJson, User.class);
+                });
     }
 }

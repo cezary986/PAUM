@@ -1,17 +1,13 @@
 package pl.polsl.workinghours.ui.user;
 
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import pl.polsl.workinghours.data.RequestQueueProvider;
 import pl.polsl.workinghours.data.auth.AuthRepository;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
-import pl.polsl.workinghours.data.login.LoginDataSource;
-import pl.polsl.workinghours.data.login.LoginRepository;
 import pl.polsl.workinghours.data.user.UserDataSource;
 import pl.polsl.workinghours.data.user.UserRepository;
 
@@ -39,13 +35,12 @@ public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFact
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(UserViewModel.class)) {
-            RequestQueueProvider requestQueueProvider = RequestQueueProvider.getInstance(this.context);
             return (T) new UserViewModel(
                     this.context,
-                    new UserRepository(
-                            new UserDataSource(RequestQueueProvider.getInstance(context)
-                    ), AuthRepository.getInstance(new CredentialDataSource(), RequestQueueProvider.getInstance(context))
-            ));
+                    UserRepository.getInstance(
+                            new UserDataSource(),
+                            AuthRepository.getInstance(new CredentialDataSource())
+                    ));
         } else {
             throw new IllegalArgumentException("Unknown ViewModel class");
         }

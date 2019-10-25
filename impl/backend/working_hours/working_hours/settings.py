@@ -55,7 +55,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'working_hours.disable_csrf.DisableCSRF'
+    'working_hours.disable_csrf.DisableCSRF',
+    'working_hours.access_log_middleware.AccessLogsMiddleware'
 ]
 
 ROOT_URLCONF = 'working_hours.urls'
@@ -184,3 +185,67 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+from django.utils.log import DEFAULT_LOGGING
+import logging.config
+
+logging.config.dictConfig({
+   'version':1,
+	'disable_existing_loggers': False,
+	'formatters':{
+		'large':{
+			'format':'%(asctime)s  %(levelname)s  %(process)d  %(pathname)s  %(funcName)s  %(lineno)d  %(message)s  '
+		},
+		'tiny':{
+			'format':'%(asctime)s  %(message)s  '
+		}
+	},
+	'handlers':{
+		'errors_file':{
+			'level':'ERROR',
+		    'class':'logging.handlers.TimedRotatingFileHandler',
+			'when':'midnight',
+			'interval':1,
+			'filename': BASE_DIR + '\\..\\logs\\error.log',
+			'formatter':'large',
+		},
+		'info_file':{
+			'level':'INFO',
+		    'class':'logging.handlers.TimedRotatingFileHandler',
+			'when':'midnight',
+			'interval':1,
+			'filename': BASE_DIR + '\\..\\logs\\info.log',
+			'formatter':'large',
+		},
+		'debug_file':{
+			'level':'DEBUG',
+		    'class':'logging.handlers.TimedRotatingFileHandler',
+			'when':'midnight',
+			'interval':1,
+			'filename': BASE_DIR + '\\..\\logs\\debug.log',
+			'formatter':'large',
+		},
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+	},
+	'loggers':{
+		'error_logger':{
+			'handlers':['errors_file'],
+			'level':'ERROR',
+			'propagate':False,
+		},
+		'info_logger':{
+			'handlers':['info_file'],
+			'level':'INFO',
+			'propagate':False,
+		},
+		'debug_logger':{
+			'handlers':['debug_file'],
+			'level':'DEBUG',
+			'propagate':False,
+		},
+	},
+})
+
+REQUEST_LOGGING_DATA_LOG_LEVEL =  logging.INFO

@@ -6,22 +6,34 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 
-import pl.polsl.workinghours.MainActivity;
+import pl.polsl.workinghours.Enviroment;
+import pl.polsl.workinghours.MainEmployeeActivity;
+import pl.polsl.workinghours.MainEmployerActivity;
 import pl.polsl.workinghours.R;
+import pl.polsl.workinghours.data.model.LoginResponse;
+import pl.polsl.workinghours.ui.errors.DefaultErrorHandler;
+import pl.polsl.workinghours.ui.errors.LoginErrorHandler;
+import pl.polsl.workinghours.ui.user.UserViewModel;
+import pl.polsl.workinghours.ui.user.UserViewModelFactory;
+import rx.Observable;
+import rx.Observer;
+import rx.functions.Func1;
+import rx.subjects.BehaviorSubject;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private BehaviorSubject<Object> unsubscribe = BehaviorSubject.create();
     private LoginViewModel loginViewModel;
+    private UserViewModel userViewModel;
+
+    private ProgressBar loadingProgressBar;
 
     public static void startActivity(Activity currentActivity) {
         Intent myIntent = new Intent(currentActivity, LoginActivity.class);
@@ -32,54 +44,49 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         loginViewModel = ViewModelProviders.of(this, new LoginViewModelFactory(getApplication()))
                 .get(LoginViewModel.class);
+        userViewModel =  ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
+                .get(UserViewModel.class);
 
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);
         final Button loginButton = findViewById(R.id.login);
-        final ProgressBar loadingProgressBar = findViewById(R.id.loading);
+        this.loadingProgressBar = findViewById(R.id.loading);
 
-        loginViewModel.getLoginFormState().observe(this, loginFormState -> {
-            if (loginFormState == null) {
-                return;
-            }
-            loginButton.setEnabled(loginFormState.isDataValid());
-            if (loginFormState.getUsernameError() != null) {
-                usernameEditText.setError(getString(loginFormState.getUsernameError()));
-            }
-            if (loginFormState.getPasswordError() != null) {
-                passwordEditText.setError(getString(loginFormState.getPasswordError()));
-            }
-        });
+        loginViewModel.getLoginFormState()
+                .takeUntil(unsubscribe)
+                .subscribe(new Observer<LoginFormState>() {
+                    @Override
+                    public void onCompleted() { }
 
-        loginViewModel.getLoginResult().observe(this, loginResult -> {
-            if (loginResult == null) {
-                return;
-            }
-            loadingProgressBar.setVisibility(View.GONE);
-            if (loginResult.getError() != null) {
-                showLoginFailed(loginResult.getError());
-            }
-            if (loginResult.getSuccess() != null) {
-                this.onLoginSuccess();
-            }
-            setResult(Activity.RESULT_OK);
+                    @Override
+                    public void onError(Throwable e) {
+                        DefaultErrorHandler.getInstance().handleError(e, LoginActivity.this);
+                    }
 
-            //Complete and destroy login activity once successful
-            finish();
-        });
+                    @Override
+                    public void onNext(LoginFormState loginFormState) {
+                        if (loginFormState == null) {
+                            return;
+                        }
+                        loginButton.setEnabled(loginFormState.isDataValid());
+                        if (loginFormState.getUsernameError() != null) {
+                            usernameEditText.setError(getString(loginFormState.getUsernameError()));
+                        }
+                        if (loginFormState.getPasswordError() != null) {
+                            passwordEditText.setError(getString(loginFormState.getPasswordError()));
+                        }
+                    }
+                });
 
         TextWatcher afterTextChangedListener = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // ignore
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // ignore
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -89,30 +96,59 @@ public class LoginActivity extends AppCompatActivity {
         };
         usernameEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString(), getApplicationContext());
-            }
-            return false;
-        });
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadingProgressBar.setVisibility(View.VISIBLE);
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString(), getApplicationContext());
-            }
+        loginButton.setOnClickListener(v -> {
+            loadingProgressBar.setVisibility(View.VISIBLE);
+            loginViewModel.login(
+                    usernameEditText.getText().toString(),
+                    passwordEditText.getText().toString(),
+                    getApplicationContext()
+            ).takeUntil(unsubscribe).subscribe(new Observer<LoginResponse>() {
+                @Override
+                public void onCompleted() { }
+
+                @Override
+                public void onError(Throwable e) {
+                    loadingProgressBar.setVisibility(View.GONE);
+                    LoginErrorHandler.getInstance().handleError(e, LoginActivity.this);
+                }
+
+                @Override
+                public void onNext(LoginResponse loginResponse) {
+                    onLoginSuccess();
+                }
+            });
         });
     }
 
     private void onLoginSuccess() {
-        Toast.makeText(getApplicationContext(), "Welcome", Toast.LENGTH_LONG).show();
-        MainActivity.startActivity(this);
-    }
+        this.userViewModel.getUserGroups(this).first().subscribe(new Observer<String[]>() {
+            @Override
+            public void onCompleted() { }
 
-    private void showLoginFailed(@StringRes Integer errorString) {
-        Toast.makeText(getApplicationContext(), "Login error", Toast.LENGTH_SHORT).show();
+            @Override
+            public void onError(Throwable e) {
+                DefaultErrorHandler.getInstance().handleError(e, LoginActivity.this);
+            }
+
+            @Override
+            public void onNext(String[] userGroups) {
+                for (String group : userGroups) {
+                    if (group.equals(Enviroment.Groups.EMPLOYER)) {
+                        MainEmployerActivity.startActivity(LoginActivity.this);
+                        finish();
+                        break;
+                    }
+                    if (group.equals(Enviroment.Groups.EMPLOYEE)) {
+                        MainEmployeeActivity.startActivity(LoginActivity.this);
+                        finish();
+                        break;
+                    }
+                }
+                loadingProgressBar.setVisibility(View.GONE);
+                setResult(Activity.RESULT_OK);
+                unsubscribe.onCompleted();
+            }
+        });
     }
 }
