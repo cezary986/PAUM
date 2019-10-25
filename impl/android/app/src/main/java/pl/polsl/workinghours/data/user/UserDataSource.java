@@ -17,6 +17,7 @@ public class UserDataSource {
                 .cacheTime(Enviroment.REQUEST_CACHE_TIME)
                 .contentType(RxVolley.ContentType.JSON)
                 .params(params)
+                .shouldCache(false)
                 .getResult()
                 .map(result -> {
                     String responseJson = new String(result.data);
@@ -33,6 +34,7 @@ public class UserDataSource {
                 .cacheTime(Enviroment.REQUEST_CACHE_TIME)
                 .contentType(RxVolley.ContentType.JSON)
                 .params(params)
+                .shouldCache(false)
                 .getResult()
                 .map(result -> {
                     String responseJson = new String(result.data);

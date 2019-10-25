@@ -5,6 +5,7 @@ import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.model.LoginResponse;
 import pl.polsl.workinghours.data.model.TokenRefreshResponse;
 import rx.Observable;
+import rx.subjects.BehaviorSubject;
 
 /**
  * Class that requests authentication and user information from the remote data source and
@@ -38,6 +39,7 @@ public class LoginRepository {
     public void logout(Context context) {
         try {
             loginDataSource.logout(this.credentialDataSource.getRefreshToken(context));
+            credentialDataSource.clear(context);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,12 +49,14 @@ public class LoginRepository {
         return this.loginDataSource.login(username, password, context);
     }
 
-    public Observable<TokenRefreshResponse> refreshToken(Context context) throws AuthenticatorException {
+    public Observable<TokenRefreshResponse> refreshToken(Context context) {
         try {
             return this.loginDataSource.login(this.credentialDataSource.getRefreshToken(context));
         } catch (Exception e) {
+            BehaviorSubject<TokenRefreshResponse> subject = BehaviorSubject.create();
             e.printStackTrace();
-            throw new AuthenticatorException("Failed to refresh token");
+            subject.onError(new AuthenticatorException("Failed to refresh token"));
+            return subject;
         }
     }
 }

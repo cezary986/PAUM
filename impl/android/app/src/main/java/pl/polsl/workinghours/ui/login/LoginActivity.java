@@ -18,13 +18,12 @@ import pl.polsl.workinghours.MainEmployeeActivity;
 import pl.polsl.workinghours.MainEmployerActivity;
 import pl.polsl.workinghours.R;
 import pl.polsl.workinghours.data.model.LoginResponse;
+import pl.polsl.workinghours.data.model.TokenRefreshResponse;
 import pl.polsl.workinghours.ui.errors.DefaultErrorHandler;
 import pl.polsl.workinghours.ui.errors.LoginErrorHandler;
 import pl.polsl.workinghours.ui.user.UserViewModel;
 import pl.polsl.workinghours.ui.user.UserViewModelFactory;
-import rx.Observable;
 import rx.Observer;
-import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
 public class LoginActivity extends AppCompatActivity {
@@ -54,6 +53,9 @@ public class LoginActivity extends AppCompatActivity {
         final EditText passwordEditText = findViewById(R.id.password);
         final Button loginButton = findViewById(R.id.login);
         this.loadingProgressBar = findViewById(R.id.loading);
+
+        // próba zalogowania się z użyciem zapisanego refresh token'a
+        this.tryToLoginWithStoredCredentials();
 
         loginViewModel.getLoginFormState()
                 .takeUntil(unsubscribe)
@@ -121,13 +123,36 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Jeżeli to możliwe logujemy użytkownika automatycznie wcześniej zapisanym
+     * refresh tokenem
+     */
+    private void tryToLoginWithStoredCredentials() {
+        this.loginViewModel.seamlesslyLogin(this).first().subscribe(new Observer<TokenRefreshResponse>() {
+            @Override
+            public void onCompleted() { }
+
+            @Override
+            public void onError(Throwable e) {
+                // nie udało się trzeba się logować ręcznie
+            }
+
+            @Override
+            public void onNext(TokenRefreshResponse response) {
+                onLoginSuccess();
+            }
+        });
+    }
+
     private void onLoginSuccess() {
+        // pobrania grup do jakich należy użytkownik
         this.userViewModel.getUserGroups(this).first().subscribe(new Observer<String[]>() {
             @Override
             public void onCompleted() { }
 
             @Override
             public void onError(Throwable e) {
+                loadingProgressBar.setVisibility(View.GONE);
                 DefaultErrorHandler.getInstance().handleError(e, LoginActivity.this);
             }
 
@@ -135,7 +160,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onNext(String[] userGroups) {
                 for (String group : userGroups) {
                     if (group.equals(Enviroment.Groups.EMPLOYER)) {
-                        MainEmployerActivity.startActivity(LoginActivity.this);
+                        MainEmployerActivity.startActivity(LoginActivity.this, userGroups);
                         finish();
                         break;
                     }

@@ -43,7 +43,6 @@ public class AuthRepository {
         } else {
             // nie mamy tokena lub się przedawnił
             try {
-                String refreshToken = this.dataSource.getRefreshToken(context);
                 LoginRepository loginRepository = LoginRepository.getInstance(
                         new LoginDataSource(dataSource),
                         dataSource

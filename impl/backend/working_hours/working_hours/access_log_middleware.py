@@ -10,18 +10,18 @@ logger = logging.getLogger(__name__)
 Middleware wypisujący do konsoli body requestu i odpowiedzi jeśli była poprawna. 
 Bardziej do debugowania i podglądania czy dobrze wysyłanym dane
 '''
-class AccessLogsMiddleware(object):
 
-    def __init__(self, get_response=None):
-        self.get_response = get_response
-        # One-time configuration and initialization.
+from django.utils.deprecation import MiddlewareMixin
 
-    def __call__(self, request):
+class AccessLogsMiddleware(MiddlewareMixin):
+
+    _initial_http_body = None
+
+    def process_request(self, request):
         # create session
         if not request.session.session_key:
             request.session.create()
 
-        response = self.get_response(request)
 
         request_log_data = {}
         request_log_data['path'] = request.path
@@ -31,16 +31,19 @@ class AccessLogsMiddleware(object):
                 request_log_data['token'] = request_log_data['token'].replace('Bearer ', '')
 
             if request.method == 'POST':
-                request_log_data["body"] = dict(request.POST.copy())
+                request_log_data["body"] = json.loads(request.body.decode("utf-8"))
         
             logger.info(json.dumps(request_log_data, indent=4, sort_keys=True))
             print('Request data: ' + json.dumps(request_log_data, indent=4) + '\n')
 
             response_log_data = {}
 
+            response = self.get_response(request)
+
             response_log_data['status_code'] = response.status_code
             # poprawna odpowiedź brak błędów
             if response.status_code >= 200 | response.status_code <= 206:
                 response_log_data['body'] = json.loads(response.content.decode("utf-8"))
                 print('Response data: ' + json.dumps(response_log_data, indent=4))
-        return response
+            return response
+        return self.get_response(request)

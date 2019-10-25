@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel;
 import pl.polsl.workinghours.R;
 import pl.polsl.workinghours.data.login.LoginRepository;
 import pl.polsl.workinghours.data.model.LoginResponse;
+import pl.polsl.workinghours.data.model.TokenRefreshResponse;
 import rx.Observable;
 import rx.subjects.BehaviorSubject;
 
@@ -25,6 +26,14 @@ public class LoginViewModel extends ViewModel {
 
     public Observable<LoginResponse> login(String username, String password, Context context) {
         return this.loginRepository.login(username, password, context);
+    }
+
+    public Observable<TokenRefreshResponse> seamlesslyLogin(Context context) {
+        return this.loginRepository.refreshToken(context);
+    }
+
+    public void logout(Context context) {
+        this.loginRepository.logout(context);
     }
 
     void loginDataChanged(String username, String password) {

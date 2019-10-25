@@ -31,7 +31,9 @@ public class UserRepository {
         try {
             return this.authRepository.getAccessToken(context)
                     .first()
-                    .flatMap(accessToken -> userDataSource.getUserGroups(accessToken));
+                    .flatMap(accessToken -> {
+                        return userDataSource.getUserGroups(accessToken);
+                    });
         } catch (AuthenticatorException e) {
             BehaviorSubject<String[]> result = BehaviorSubject.create();
             BehaviorSubject.create().onError(e);

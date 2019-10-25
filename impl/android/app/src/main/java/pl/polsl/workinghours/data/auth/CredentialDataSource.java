@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 
 public class CredentialDataSource {
 
@@ -63,13 +64,17 @@ public class CredentialDataSource {
             e.printStackTrace();
         }
         byte[] newBytes = new byte[bytesRead];
-        return this.encryptor.decrypt(newBytes);
+        System.arraycopy(bytes, 0, newBytes, 0, bytesRead);
+        String result = this.encryptor.decrypt(newBytes);
+        return result;
     }
 
     private void saveToFile(String data, Context context) {
         FileOutputStream outputStream;
         try {
             outputStream = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            FileWriter fileWriter = new FileWriter(outputStream.getFD());
+            fileWriter.write("");
             outputStream.write(this.encryptor.encrypt(data));
             outputStream.close();
         } catch (Exception e) {
@@ -79,5 +84,11 @@ public class CredentialDataSource {
 
     public String getAccessToken() {
         return this.accessToken;
+    }
+
+    public void clear(Context context) {
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.saveToFile("", context);
     }
 }

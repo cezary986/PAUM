@@ -32,11 +32,9 @@ public class LoginErrorHandler implements IErrorHandler {
 
     private void handleApiError(VolleyError error, Activity activity) {
         switch (error.networkResponse.statusCode) {
-            case 500:
-                DefaultErrorHandler.getInstance().handleError(error, activity);
-                break;
             case 401:
                 showToast(activity.getString(R.string.login_error_401), activity);
+                break;
             default:
                 DefaultErrorHandler.getInstance().handleError(error, activity);
                 break;

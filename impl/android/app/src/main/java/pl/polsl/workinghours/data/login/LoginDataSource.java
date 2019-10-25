@@ -45,8 +45,6 @@ public class LoginDataSource {
                     AuthRepository authRepository = AuthRepository.getInstance(new CredentialDataSource());
                     authRepository.setAccessToken(response.access);
                     authRepository.setRefreshToken(response.refresh, context);
-                    credentialDataSource.setAccessToken(response.access);
-                    credentialDataSource.saveRefreshToken(response.refresh, context);
                     return response;
                 });
     }
@@ -55,10 +53,10 @@ public class LoginDataSource {
         HttpParams params = new HttpParams();
         JsonObject body = new JsonObject();
         body.addProperty("refresh", refreshToken);
-        params.putJsonParams(body.getAsString());
+        params.putJsonParams(body.toString());
 
         return new RxVolley.Builder()
-                .url(Enviroment.Endpoints.LOGIN.getUrl())
+                .url(Enviroment.Endpoints.LOGIN_REFRESH.getUrl())
                 .httpMethod(RxVolley.Method.POST)
                 .cacheTime(Enviroment.REQUEST_CACHE_TIME)
                 .contentType(RxVolley.ContentType.JSON)

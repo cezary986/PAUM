@@ -40,8 +40,10 @@ public class DefaultErrorHandler implements IErrorHandler {
                 break;
             case 401:
                 this.handleAuthError(error, activity);
+                break;
             case 403:
                 this.showToast(activity.getString(R.string.server_error_403), activity);
+                break;
             default:
                 this.showToast(activity.getString(R.string.unknown_server_error_500), activity);
                 break;
