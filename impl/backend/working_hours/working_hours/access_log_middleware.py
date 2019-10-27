@@ -25,7 +25,7 @@ class AccessLogsMiddleware(MiddlewareMixin):
 
         request_log_data = {}
         request_log_data['path'] = request.path
-        if not 'admin/' in request.path:
+        if 'api/' in request.path:
             request_log_data['token'] = request.headers.get('Authorization')
             if request_log_data['token'] != None:
                 request_log_data['token'] = request_log_data['token'].replace('Bearer ', '')
