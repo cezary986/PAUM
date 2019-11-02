@@ -8,7 +8,7 @@ import rx.Observable;
 
 public class UserViewModel extends AndroidViewModel {
 
-    private static final String TAG = "UserViewModel";
+    private static final String TAG = "QrCodeViewModel";
 
     private UserRepository userRepository;
 

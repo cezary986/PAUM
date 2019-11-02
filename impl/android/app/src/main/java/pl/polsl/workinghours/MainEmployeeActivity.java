@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -30,6 +31,8 @@ public class MainEmployeeActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
     private LoginViewModel loginViewModel;
 
+    private Button scanQrButton;
+
     public static void startActivity(Activity currentActivity) {
         Intent myIntent = new Intent(currentActivity, MainEmployeeActivity.class);
         currentActivity.startActivity(myIntent);
@@ -39,6 +42,7 @@ public class MainEmployeeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_employee);
+        scanQrButton = findViewById(R.id.scanQrButton);
 
         userViewModel =  ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
                 .get(UserViewModel.class);
@@ -46,6 +50,12 @@ public class MainEmployeeActivity extends AppCompatActivity {
                 .get(LoginViewModel.class);
 
         this.fetchUserProfile();
+
+        scanQrButton.setOnClickListener(v -> {
+            QrCodeScanActivity.startActivity(MainEmployeeActivity.this);
+          // finish();
+        });
+
     }
 
     @Override

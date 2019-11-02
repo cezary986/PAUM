@@ -5,7 +5,7 @@ package pl.polsl.workinghours;
  */
 public interface Enviroment {
 
-    String API_URL = "http://192.168.1.60:90/paum/api/";
+    String API_URL = "http://192.168.0.199:90/paum/api/";
     //String API_URL = "http://157.158.203.41:90/paum/api/";
     int REQUEST_CACHE_TIME = 5; // min
 
