@@ -15,6 +15,7 @@ from django.conf import settings
 from qr_code.gr_code import generate_qr_code, validate_code
 from api.models import WorkDay
 from django.utils import timezone
+import io
 
 class CodeView(APIView):
     permission_classes = (IsAuthenticated,)

@@ -39,11 +39,14 @@ class AccessLogsMiddleware(MiddlewareMixin):
             response_log_data = {}
 
             response = self.get_response(request)
-
             response_log_data['status_code'] = response.status_code
             # poprawna odpowiedź brak błędów
             if response.status_code >= 200 | response.status_code <= 206:
-                response_log_data['body'] = json.loads(response.content.decode("utf-8"))
-                print('Response data: ' + json.dumps(response_log_data, indent=4))
+                try:
+                    response_log_data['body'] = json.loads(response.content.decode("utf-8"))
+                    print('Response data: ' + json.dumps(response_log_data, indent=4))
+                    pass
+                except Exception:
+                    pass 
             return response
         return self.get_response(request)
