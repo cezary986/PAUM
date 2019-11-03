@@ -8,6 +8,9 @@ public interface Enviroment {
     String API_URL = "http://192.168.0.199:90/paum/api/";
     //String API_URL = "http://157.158.203.41:90/paum/api/";
     int REQUEST_CACHE_TIME = 5; // min
+    String START_WORK_DESC = "ZESKANUJ QR ZEBY ZACZAC PRACE";
+    String WORK_DESC = "ZESKANUJ KOD ZEBY ZAKONCZYC PRACE";
+    String END_WORK_DESC = "DZIS PRACOWALES";
 
     interface Groups {
         String EMPLOYEE  = "Employee";
@@ -39,10 +42,15 @@ public interface Enviroment {
          * Pobranie danych o godzinach pracy pracownika
          */
         EMPLOYEES_WORK_HOURS (Enviroment.API_URL, "/employee/"),
+
+        EMPLOYEES_WORK_HOURS_MINE(Enviroment.API_URL + "employee/work_hours/"),
+
         /**
          * Pobranie lub wysłanie kodu
          */
         CODE (Enviroment.API_URL + "code/");
+
+
 
         public final String[] urlParts;
 

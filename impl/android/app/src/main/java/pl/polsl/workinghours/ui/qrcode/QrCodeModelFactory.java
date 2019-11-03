@@ -1,4 +1,4 @@
-package pl.polsl.workinghours.ui.QrCodeViewModel;
+package pl.polsl.workinghours.ui.qrcode;
 
 import android.app.Application;
 
@@ -10,9 +10,6 @@ import pl.polsl.workinghours.data.auth.AuthRepository;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
 import pl.polsl.workinghours.data.qrcode.QrCodeDataSource;
 import pl.polsl.workinghours.data.qrcode.QrCodeRepository;
-import pl.polsl.workinghours.data.user.UserDataSource;
-import pl.polsl.workinghours.data.user.UserRepository;
-import pl.polsl.workinghours.ui.user.UserViewModel;
 
 /**
  * ViewModel provider factory to instantiate QrCodeViewModel.
@@ -37,7 +34,7 @@ public class QrCodeModelFactory extends ViewModelProvider.AndroidViewModelFactor
     @Override
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        if (modelClass.isAssignableFrom(UserViewModel.class)) {
+        if (modelClass.isAssignableFrom(QrCodeViewModel.class)) {
             return (T) new QrCodeViewModel(
                     this.context,
                     QrCodeRepository.getInstance(

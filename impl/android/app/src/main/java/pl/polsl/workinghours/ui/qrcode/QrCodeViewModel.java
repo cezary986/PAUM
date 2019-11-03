@@ -1,4 +1,4 @@
-package pl.polsl.workinghours.ui.QrCodeViewModel;
+package pl.polsl.workinghours.ui.qrcode;
 
 import android.app.Application;
 import android.content.Context;
@@ -6,9 +6,7 @@ import android.content.Context;
 import androidx.lifecycle.AndroidViewModel;
 
 import pl.polsl.workinghours.data.model.QrCode;
-import pl.polsl.workinghours.data.model.User;
 import pl.polsl.workinghours.data.qrcode.QrCodeRepository;
-import pl.polsl.workinghours.data.user.UserRepository;
 import rx.Observable;
 
 public class QrCodeViewModel extends AndroidViewModel {

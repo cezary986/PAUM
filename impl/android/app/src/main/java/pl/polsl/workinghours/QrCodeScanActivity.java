@@ -27,12 +27,8 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.IOException;
 
 import pl.polsl.workinghours.data.model.QrCode;
-import pl.polsl.workinghours.data.model.TokenRefreshResponse;
-import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.ui.QrCodeViewModel.QrCodeModelFactory;
-import pl.polsl.workinghours.ui.QrCodeViewModel.QrCodeViewModel;
-import pl.polsl.workinghours.ui.user.UserViewModel;
-import pl.polsl.workinghours.ui.user.UserViewModelFactory;
+import pl.polsl.workinghours.ui.qrcode.QrCodeModelFactory;
+import pl.polsl.workinghours.ui.qrcode.QrCodeViewModel;
 import rx.Observer;
 
 public class QrCodeScanActivity extends AppCompatActivity {
@@ -42,6 +38,8 @@ public class QrCodeScanActivity extends AppCompatActivity {
     TextView textView;
     BarcodeDetector barcodeDetector;
     QrCodeViewModel qrCodeViewModel;
+    String currentCode = "NOTHING";
+    int pla = 0;
 
     public static void startActivity(Activity currentActivity) {
         Intent myIntent = new Intent(currentActivity, QrCodeScanActivity.class);
@@ -108,13 +106,17 @@ public class QrCodeScanActivity extends AppCompatActivity {
             @Override
             public void receiveDetections(Detector.Detections<Barcode> detections) {
                 SparseArray<Barcode> qrCodes =detections.getDetectedItems();
-                if (qrCodes.size()!= 0){
-                    textView.post(() -> {
-                        Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-                        vibrator.vibrate(1000);
-                        textView.setText(qrCodes.valueAt(0).displayValue);
-                        sendQrCode(qrCodes.valueAt(0).displayValue);
-                    });
+                if (!qrCodes.valueAt(0).displayValue.equals(currentCode)) {
+                    currentCode = qrCodes.valueAt(0).displayValue;
+                    if (qrCodes.size() != 0) {
+                        textView.post(() -> {
+                            Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+                            vibrator.vibrate(1000);
+                            textView.setText(qrCodes.valueAt(0).displayValue + "   " + pla++);
+                            sendQrCode(qrCodes.valueAt(0).displayValue);
+
+                        });
+                    }
                 }
             }
 
