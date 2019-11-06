@@ -55,6 +55,7 @@ public class MainEmployerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_employer);
 
+
         this.getIntentExtraData();
 
         userViewModel =  ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))

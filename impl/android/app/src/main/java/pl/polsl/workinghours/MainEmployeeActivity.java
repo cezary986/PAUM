@@ -1,11 +1,16 @@
 package pl.polsl.workinghours;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.icu.text.SimpleDateFormat;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,7 +21,15 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import pl.polsl.workinghours.data.model.QrCode;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import pl.polsl.workinghours.data.model.User;
 import pl.polsl.workinghours.data.model.WorkHours;
 import pl.polsl.workinghours.data.model.WorkhoursListResponse;
@@ -42,6 +55,9 @@ public class MainEmployeeActivity extends AppCompatActivity {
     private Button scanQrButton;
     private EditText employeeTextViewWorkHoursDate;
     private TextView employeeTextViewWorkHoursTitle;
+    int startTime;
+    int sumTime;
+    private boolean ContinuesTimeDisplay;
 
     public static void startActivity(Activity currentActivity) {
         Intent myIntent = new Intent(currentActivity, MainEmployeeActivity.class);
@@ -64,24 +80,56 @@ public class MainEmployeeActivity extends AppCompatActivity {
                 .get(WorkHoursViewModel.class);
 
         this.fetchUserProfile();
-       // getWorkHours(1572804140);
 
 
         scanQrButton.setOnClickListener(v -> {
             QrCodeScanActivity.startActivity(MainEmployeeActivity.this);
-          // finish();
         });
 
+    }
+
+    private long getCurrentTimestamp() {
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        long offset = cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET);
+        return  (cal.getTimeInMillis() + offset);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        getWorkHours(1572739200);
+        getWorkHours(  getCurrentTimestamp());
+    }
+
+    public void updateClockStart() {
+//        Handler handler = new Handler(context.getMainLooper());
+        Thread th = new Thread(() -> {
+            while (ContinuesTimeDisplay) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(() -> {
+                    Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+                    Date date = cal.getTime();
+                    String[] stra = date.toString().split(" ");
+                    long now = WorkHours.stringToTimestampJust(stra[3]);
+                    long toShowTime = sumTime + now - startTime;
+                    String str = WorkHours.timeStampToString((int) toShowTime);
+                    employeeTextViewWorkHoursDate.setText(str);
+                });
+            }
+        });
+
+
+
+        th.start();
 
     }
 
-    public void getWorkHours(int date) {
+
+
+    public void getWorkHours(long date) {
         workHoursViewModel.getWorkHours(date,this).first().subscribe(new Observer<WorkhoursListResponse>() {
             @Override
             public void onCompleted() { }
@@ -93,21 +141,36 @@ public class MainEmployeeActivity extends AppCompatActivity {
 
             @Override
             public void onNext(WorkhoursListResponse workhoursListResponse) {
-
                 WorkHours[] workHours = workhoursListResponse.results;
+                WorkHours workHour;
                 if (workHours.length == 0){
                     employeeTextViewWorkHoursTitle.setText(Enviroment.START_WORK_DESC);
+                    employeeTextViewWorkHoursDate.setText("");
+                    ContinuesTimeDisplay = false;
                 } else {
-                    WorkHours workHour = workHours[0];
+                    workHour = workHours[workHours.length-1];
+
                     if(workHour.finished == null ) {
-                        employeeTextViewWorkHoursDate.setText(workHour.started);
+                        sumTime = 0;
+                        for (int i = 0 ; i < workHours.length-1; i++){
+                            sumTime += workHours[i].timeSpendWork();
+                        }
+
+                        startTime = workHour.stringToTimestamp(workHour.started);
+                        ContinuesTimeDisplay = true;
+                        updateClockStart();
                         employeeTextViewWorkHoursTitle.setText(Enviroment.WORK_DESC);
                     } else {
-                        employeeTextViewWorkHoursDate.setText(workHour.finished);
+                        sumTime = 0;
+                        for (int i = 0 ; i < workHours.length; i++){
+                            sumTime += workHours[i].timeSpendWork();
+                        }
+
+                        employeeTextViewWorkHoursDate.setText(workHour.timeStampToString(sumTime));
                         employeeTextViewWorkHoursTitle.setText(Enviroment.END_WORK_DESC);
+                        ContinuesTimeDisplay = false;
                     }
                 }
-
             }
         });
     }

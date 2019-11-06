@@ -22,7 +22,7 @@ public class WorkHoursViewModel extends AndroidViewModel {
         this.workDataRepository = workDataRepository;
     }
 
-    public Observable<WorkhoursListResponse> getWorkHours(Integer date, Context context) {
+    public Observable<WorkhoursListResponse> getWorkHours(long date, Context context) {
         return this.workDataRepository.getWorkHours(date, context);
     }
 
