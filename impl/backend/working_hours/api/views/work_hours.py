@@ -47,6 +47,7 @@ class WorkHoursView(APIView):
             work_days = WorkDay.objects.filter(user=employee)
             try:
                 work_days = self.filter_data(work_days)
+                work_days.order_by('+finished')
                 return self.make_paginated_response(work_days)
             except Exception as e:
                 serializer = MessageSerializer(Message('Invalid filters.'))
