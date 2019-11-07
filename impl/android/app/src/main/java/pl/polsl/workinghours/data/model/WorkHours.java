@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class WorkHours {
+public class WorkHours implements Comparable<WorkHours>{
     public Integer id;
     public String started;
     public String  finished;
@@ -35,6 +35,10 @@ public class WorkHours {
     public static int stringToTimestamp(String str){
         str = str.split("T")[1];
         return stringToTimestampJust(str);
+    }
+
+    public String stringToTime(String str){
+        return timeStampToString(stringToTimestamp(str));
     }
 
     public static String timeStampToString(int time){
@@ -57,11 +61,12 @@ public class WorkHours {
         return timeStampToString(timeSpendWork());
     }
 
+    @Override
+    public int compareTo(WorkHours o) {
+        if (stringToTimestamp(this.started)<stringToTimestamp(o.started))
+            return -1;
+        else
+            return  1;
+    }
 
-//    private String getDate(long time) {
-//        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
-//        cal.setTimeInMillis(time * 1000);
-//        String date = DateFormat.format("dd-MM-yyyy", cal).toString();
-//        return date;
-//    }
 }

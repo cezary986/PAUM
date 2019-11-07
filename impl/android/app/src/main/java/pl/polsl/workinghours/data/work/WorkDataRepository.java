@@ -48,5 +48,18 @@ public class WorkDataRepository {
         }
     }
 
+    public Observable<WorkhoursListResponse> getWorkHoursForSpecified(int id, Context context) {
+        try {
+            return this.authRepository.getAccessToken(context)
+                    .first()
+                    .flatMap(accessToken -> workDataSource.getWorkHoursForSpecified(id, accessToken));
+        } catch (AuthenticatorException e) {
+            BehaviorSubject<WorkhoursListResponse> result = BehaviorSubject.create();
+            BehaviorSubject.create().onError(e);
+            e.printStackTrace();
+            return result;
+        }
+    }
+
 
 }

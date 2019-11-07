@@ -50,8 +50,6 @@ public interface Enviroment {
          */
         CODE (Enviroment.API_URL + "code/");
 
-
-
         public final String[] urlParts;
 
         public String getUrl(String... param) {

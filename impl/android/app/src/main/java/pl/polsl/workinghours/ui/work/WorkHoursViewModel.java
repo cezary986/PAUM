@@ -26,4 +26,7 @@ public class WorkHoursViewModel extends AndroidViewModel {
         return this.workDataRepository.getWorkHours(date, context);
     }
 
+    public Observable<WorkhoursListResponse> getWorkHoursForSpecified(int id, Context context) {
+        return this.workDataRepository.getWorkHoursForSpecified(id, context);
+    }
 }

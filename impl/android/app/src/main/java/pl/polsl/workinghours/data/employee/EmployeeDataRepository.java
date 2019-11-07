@@ -35,7 +35,7 @@ public class EmployeeDataRepository {
         return instance;
     }
 
-    public Observable<EmployeeListResponse> getWorkHours(Context context) {
+    public Observable<EmployeeListResponse> getEmployeeList(Context context) {
         try {
             return this.authRepository.getAccessToken(context)
                     .first()

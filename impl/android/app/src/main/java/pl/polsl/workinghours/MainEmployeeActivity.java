@@ -120,14 +120,8 @@ public class MainEmployeeActivity extends AppCompatActivity {
                 });
             }
         });
-
-
-
         th.start();
-
     }
-
-
 
     public void getWorkHours(long date) {
         workHoursViewModel.getWorkHours(date,this).first().subscribe(new Observer<WorkhoursListResponse>() {
@@ -142,6 +136,8 @@ public class MainEmployeeActivity extends AppCompatActivity {
             @Override
             public void onNext(WorkhoursListResponse workhoursListResponse) {
                 WorkHours[] workHours = workhoursListResponse.results;
+                Arrays.sort(workHours);
+
                 WorkHours workHour;
                 if (workHours.length == 0){
                     employeeTextViewWorkHoursTitle.setText(Enviroment.START_WORK_DESC);
