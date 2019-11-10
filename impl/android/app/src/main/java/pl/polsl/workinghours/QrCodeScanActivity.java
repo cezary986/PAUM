@@ -51,7 +51,7 @@ public class QrCodeScanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_code_scan);
 
-        qrCodeViewModel =  ViewModelProviders.of(this, new QrCodeModelFactory(getApplication()))
+        qrCodeViewModel = ViewModelProviders.of(this, new QrCodeModelFactory(getApplication()))
                 .get(QrCodeViewModel.class);
 
 
@@ -71,12 +71,12 @@ public class QrCodeScanActivity extends AppCompatActivity {
                 .setBarcodeFormats(Barcode.QR_CODE).build();
 
         cameraSource = new CameraSource.Builder(this, barcodeDetector)
-                .setRequestedPreviewSize(640,480).build();
+                .setRequestedPreviewSize(640, 480).build();
 
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 try {
@@ -107,7 +107,7 @@ public class QrCodeScanActivity extends AppCompatActivity {
             public void receiveDetections(Detector.Detections<Barcode> detections) {
                 SparseArray<Barcode> qrCodes = detections.getDetectedItems();
 
-                if (qrCodes == null){
+                if (qrCodes == null) {
                     return;
                 }
 
@@ -119,34 +119,33 @@ public class QrCodeScanActivity extends AppCompatActivity {
                             vibrator.vibrate(1000);
                             textView.setText(qrCodes.valueAt(0).displayValue + "   " + pla++);
                             sendQrCode(qrCodes.valueAt(0).displayValue);
-
                         });
                     }
                 }
             }
-
         });
     }
 
     public void sendQrCode(String code) {
-        qrCodeViewModel.postQrCode(code,this).first().subscribe(new Observer<QrCode>() {
+        qrCodeViewModel.postQrCode(code, this).first().subscribe(new Observer<QrCode>() {
             @Override
-            public void onCompleted() { }
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {
-                // nie udało się trzeba się logować ręcznie
+                textView.setText("PLEASE REFRESH QR CODE");
             }
 
             @Override
             public void onNext(QrCode qrCode) {
-
+                textView.setText("QR CODE SCANNED ");
             }
         });
     }
 
 
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();

@@ -53,11 +53,12 @@ public class MainEmployeeActivity extends AppCompatActivity {
     private WorkHoursViewModel workHoursViewModel;
 
     private Button scanQrButton;
-    private EditText employeeTextViewWorkHoursDate;
+    private TextView employeeTextViewWorkHoursDate;
     private TextView employeeTextViewWorkHoursTitle;
     int startTime;
     int sumTime;
     private boolean ContinuesTimeDisplay;
+    private Thread timeUpdateTask;
 
     public static void startActivity(Activity currentActivity) {
         Intent myIntent = new Intent(currentActivity, MainEmployeeActivity.class);
@@ -72,7 +73,7 @@ public class MainEmployeeActivity extends AppCompatActivity {
         employeeTextViewWorkHoursDate = findViewById(R.id.EmployeeTextViewWorkHoursDate);
         employeeTextViewWorkHoursTitle = findViewById(R.id.EmployeeTextViewWorkHoursTitle);
 
-        userViewModel =  ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
+        userViewModel = ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
                 .get(UserViewModel.class);
         loginViewModel = ViewModelProviders.of(this, new LoginViewModelFactory(getApplication()))
                 .get(LoginViewModel.class);
@@ -91,18 +92,18 @@ public class MainEmployeeActivity extends AppCompatActivity {
     private long getCurrentTimestamp() {
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
         long offset = cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET);
-        return  (cal.getTimeInMillis() + offset);
+        return (cal.getTimeInMillis() + offset);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        getWorkHours(  getCurrentTimestamp());
+        getWorkHours(getCurrentTimestamp());
     }
 
     public void updateClockStart() {
 //        Handler handler = new Handler(context.getMainLooper());
-        Thread th = new Thread(() -> {
+        timeUpdateTask = new Thread(() -> {
             while (ContinuesTimeDisplay) {
                 try {
                     Thread.sleep(1000);
@@ -110,23 +111,26 @@ public class MainEmployeeActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 runOnUiThread(() -> {
-                    Calendar cal = Calendar.getInstance(Locale.ENGLISH);
-                    Date date = cal.getTime();
-                    String[] stra = date.toString().split(" ");
-                    long now = WorkHours.stringToTimestampJust(stra[3]);
-                    long toShowTime = sumTime + now - startTime;
-                    String str = WorkHours.timeStampToString((int) toShowTime);
-                    employeeTextViewWorkHoursDate.setText(str);
+                    if (ContinuesTimeDisplay != false) {
+                        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+                        Date date = cal.getTime();
+                        String[] stra = date.toString().split(" ");
+                        long now = WorkHours.stringToTimestampJust(stra[3]);
+                        long toShowTime = sumTime + now - startTime;
+                        String str = WorkHours.timeStampToString((int) toShowTime);
+                        employeeTextViewWorkHoursDate.setText(str);
+                    }
                 });
             }
         });
-        th.start();
+        timeUpdateTask.start();
     }
 
     public void getWorkHours(long date) {
-        workHoursViewModel.getWorkHours(date,this).first().subscribe(new Observer<WorkhoursListResponse>() {
+        workHoursViewModel.getWorkHours(date, this).first().subscribe(new Observer<WorkhoursListResponse>() {
             @Override
-            public void onCompleted() { }
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {
@@ -139,26 +143,28 @@ public class MainEmployeeActivity extends AppCompatActivity {
                 Arrays.sort(workHours);
 
                 WorkHours workHour;
-                if (workHours.length == 0){
+                if (workHours.length == 0) {
                     employeeTextViewWorkHoursTitle.setText(Enviroment.START_WORK_DESC);
                     employeeTextViewWorkHoursDate.setText("");
                     ContinuesTimeDisplay = false;
                 } else {
-                    workHour = workHours[workHours.length-1];
-
-                    if(workHour.finished == null ) {
-                        sumTime = 0;
-                        for (int i = 0 ; i < workHours.length-1; i++){
+                    workHour = workHours[workHours.length - 1];
+                    sumTime = 0;
+                    if (workHour.finished == null) {
+                        for (int i = 0; i < workHours.length - 1; i++) {
                             sumTime += workHours[i].timeSpendWork();
                         }
-
                         startTime = workHour.stringToTimestamp(workHour.started);
                         ContinuesTimeDisplay = true;
                         updateClockStart();
                         employeeTextViewWorkHoursTitle.setText(Enviroment.WORK_DESC);
                     } else {
-                        sumTime = 0;
-                        for (int i = 0 ; i < workHours.length; i++){
+                        if (timeUpdateTask != null) {
+                            timeUpdateTask.interrupt();
+                            timeUpdateTask = null;
+                        }
+
+                        for (int i = 0; i < workHours.length; i++) {
                             sumTime += workHours[i].timeSpendWork();
                         }
 
@@ -196,7 +202,8 @@ public class MainEmployeeActivity extends AppCompatActivity {
         // Używając first() nie trzeba wywoływać unsubscribe ale dostajesz wynik jedynie raz
         userViewModel.getProfile(this).first().subscribe(new Observer<User>() {
             @Override
-            public void onCompleted() { }
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {

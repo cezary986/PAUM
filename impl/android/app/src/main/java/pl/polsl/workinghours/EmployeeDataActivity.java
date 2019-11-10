@@ -53,9 +53,10 @@ public class EmployeeDataActivity extends AppCompatActivity {
     }
 
     public void getWorkHoursForSpecified(int id) {
-        workHoursViewModel.getWorkHoursForSpecified(id,this).first().subscribe(new Observer<WorkhoursListResponse>() {
+        workHoursViewModel.getWorkHoursForSpecified(id, this).first().subscribe(new Observer<WorkhoursListResponse>() {
             @Override
-            public void onCompleted() { }
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {
@@ -68,13 +69,14 @@ public class EmployeeDataActivity extends AppCompatActivity {
                 Arrays.sort(workHours);
 
                 ArrayList<String> arrayList = new ArrayList<>();
-                for (WorkHours w: workhoursListResponse.results){
-                    if (w.finished == null) {
-                        arrayList.add(w.started  + "\n"+ w.stringToTime(w.started)+ "  -  "+ "still working");
-                    } else {
-                        arrayList.add(w.started  + "\n"+ w.stringToTime(w.started)+ "  -  "+ w.stringToTime(w.finished));
-                    }
 
+                for (WorkHours w : workhoursListResponse.results) {
+                    String date = WorkHours.extractDateFromDateTTime(w.started);
+                    if (w.finished == null) {
+                        arrayList.add(date + "\n" + w.stringToTime(w.started) + "  -  " + "still working");
+                    } else {
+                        arrayList.add(date + "\n" + w.stringToTime(w.started) + "  -  " + w.stringToTime(w.finished));
+                    }
                 }
 
                 ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrayList);
@@ -84,7 +86,7 @@ public class EmployeeDataActivity extends AppCompatActivity {
         });
     }
 
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();

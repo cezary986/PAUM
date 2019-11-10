@@ -13,7 +13,7 @@ public interface Enviroment {
     String END_WORK_DESC = "DZIS PRACOWALES";
 
     interface Groups {
-        String EMPLOYEE  = "Employee";
+        String EMPLOYEE = "Employee";
         String EMPLOYER = "Employer";
     }
 
@@ -21,34 +21,34 @@ public interface Enviroment {
         /**
          * Zwykłe logowanie loginem i hasłem
          */
-        LOGIN  (Enviroment.API_URL + "auth/login/"),
+        LOGIN(Enviroment.API_URL + "auth/login/"),
         /**
          * Logowanie przy pomocy refresh token'a
          */
-        LOGIN_REFRESH  (Enviroment.API_URL + "auth/refresh/"),
+        LOGIN_REFRESH(Enviroment.API_URL + "auth/refresh/"),
         /**
          * Pobranie danych o samym sobie
          */
-        PROFILE (Enviroment.API_URL + "user/profile/"),
+        PROFILE(Enviroment.API_URL + "user/profile/"),
         /**
          * Pobranie danych o grupach do jakich nalezy uzytkownik
          */
-        GROUPS (Enviroment.API_URL + "user/groups/"),
+        GROUPS(Enviroment.API_URL + "user/groups/"),
         /**
          * Pobranie danych o samym sobie
          */
-        EMPLOYEES_LIST (Enviroment.API_URL + "employee/"),
+        EMPLOYEES_LIST(Enviroment.API_URL + "employee/"),
         /**
          * Pobranie danych o godzinach pracy pracownika
          */
-        EMPLOYEES_WORK_HOURS (Enviroment.API_URL, "/employee/"),
+        EMPLOYEES_WORK_HOURS(Enviroment.API_URL, "/employee/"),
 
         EMPLOYEES_WORK_HOURS_MINE(Enviroment.API_URL + "employee/work_hours/"),
 
         /**
          * Pobranie lub wysłanie kodu
          */
-        CODE (Enviroment.API_URL + "code/");
+        CODE(Enviroment.API_URL + "code/");
 
         public final String[] urlParts;
 

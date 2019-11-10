@@ -1,23 +1,5 @@
 package pl.polsl.workinghours.data.model;
 
-import android.os.Build;
-import android.text.format.DateFormat;
-import android.text.format.Time;
-
-import androidx.annotation.RequiresApi;
-
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 public class WorkHours implements Comparable<WorkHours>{
     public Integer id;
     public String started;
@@ -30,6 +12,9 @@ public class WorkHours implements Comparable<WorkHours>{
         int minutes = Integer.parseInt(times[1]);
         int seconds = Integer.parseInt(times[2]);
         return seconds + minutes * 60 + hours * 60 * 60;
+    }
+    public static String extractDateFromDateTTime(String str) {
+        return str.split("T")[0];
     }
 
     public static int stringToTimestamp(String str){
@@ -51,7 +36,6 @@ public class WorkHours implements Comparable<WorkHours>{
         return str.toString();
     }
 
-
     public int timeSpendWork(){
         return  stringToTimestamp(finished) - stringToTimestamp(started);
     }
@@ -66,7 +50,7 @@ public class WorkHours implements Comparable<WorkHours>{
         if (stringToTimestamp(this.started)<stringToTimestamp(o.started))
             return -1;
         else
-            return  1;
+            return 1;
     }
 
 }
