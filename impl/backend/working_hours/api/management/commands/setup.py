@@ -8,6 +8,8 @@ from django.contrib.auth.models import Group, Permission
 DEFAULT_ADMIN_USERNAME = 'admin'
 DEFAULT_ADMIN_PASSWORD = 'admin'
 
+SAMPLE_EMPLEYEE_COUNT = 10
+
 DEFAULT_EMPLOYER_USERNAME = 'pracodawca'
 DEFAULT_EMPLOYER_PASSWORD = 'pracodawca'
 
@@ -32,6 +34,7 @@ class Command(BaseCommand):
         self.create_default_admin_user()
         self.create_default_employer_user()
         self.create_default_employee_user()
+        self.create_sample_employees_users()
 
     def migrate_db(self):
         os.system('python manage.py makemigrations')
@@ -81,6 +84,22 @@ class Command(BaseCommand):
         user.save()
         group = Group.objects.get(name='Employee') 
         group.user_set.add(user)
+
+    def create_sample_employees_users(self):
+        self.stdout.write('CREATING / UPDATING sample employees users')
+        for i in range(0, 10):
+            user = None
+            username = DEFAULT_EMPLOYEE_USERNAME + '_' + str(i)
+            try:
+                user = User.objects.get(username=username)
+            except ObjectDoesNotExist:
+                user = User(username=username)
+            user.set_password(DEFAULT_EMPLOYEE_PASSWORD)
+            user.is_superuser = False
+            user.is_staff = True
+            user.save()
+            group = Group.objects.get(name='Employee') 
+            group.user_set.add(user)
 
     def create_groups(self):
         # Loop groups

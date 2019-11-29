@@ -34,9 +34,22 @@ U mnie to będzie:
 ./env/Scripts/python ./working_hours/manage.py runserver 8080
 ```
 
+## Uruchomienie z własnym plikiem konfiguracyjnym
+
+Wcześniejsza komenda uruchamia aplikacje z domyślnym plikiem konfiguracyjnym `settings.py`. Urochemienie ze swoim własnym plikiem wymaga dodania dodatkowego parametru:
+
+```bash
+python manage.py setup --settings=working_hours.{nazwa_twojego_pliku}
+```
+Np dla mnie dla `settings_cm.py` będzie to:
+```bash
+python manage.py setup --settings=working_hours.settings_cm
+```
+
 ## Domyślni użytkownicy
 
 Automatycznie przy komendzie `setup` utworzeni zostaną trzej użytkownicy:
 * Administrator: (u: `admin` p: `admin`) - może wszystko
 * Pracodawca: (u: `pracodawca` p: `pracodawca`)
 * Administrator: (u: `pracownik` p: `pracownik`)
+* Tworzonych jest także domyślnie 10 przykładowych pracownikó (u: `pracownik-i` (gdzie i to kolejne numery) p: `pracownik`)

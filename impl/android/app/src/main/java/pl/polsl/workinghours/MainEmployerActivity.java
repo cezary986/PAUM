@@ -9,13 +9,25 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import pl.polsl.workinghours.data.model.EmployeeListResponse;
 import pl.polsl.workinghours.data.model.User;
+import pl.polsl.workinghours.data.model.WorkHours;
+import pl.polsl.workinghours.data.model.WorkhoursListResponse;
 import pl.polsl.workinghours.ui.errors.DefaultErrorHandler;
+import pl.polsl.workinghours.ui.listemployee.ListEmployeeModelFactory;
+import pl.polsl.workinghours.ui.listemployee.ListEmployeeViewModel;
 import pl.polsl.workinghours.ui.login.LoginActivity;
 import pl.polsl.workinghours.ui.login.LoginViewModel;
 import pl.polsl.workinghours.ui.login.LoginViewModelFactory;
@@ -32,12 +44,16 @@ public class MainEmployerActivity extends AppCompatActivity {
 
     private UserViewModel userViewModel;
     private LoginViewModel loginViewModel;
-    /** Nazwy wszystkich grup do jakich należy użytkownik */
+    private ListEmployeeViewModel listEmployeeViewModel;
+    /**
+     * Nazwy wszystkich grup do jakich należy użytkownik
+     */
     private String[] userGroups;
+    private ListView listView;
 
     /**
      * @param currentActivity
-     * @param groups grupy użykownika, przekazywane na wypadek gdyby był i pracownikiem i pracodawcą
+     * @param groups          grupy użykownika, przekazywane na wypadek gdyby był i pracownikiem i pracodawcą
      */
     public static void startActivity(Activity currentActivity, String[] groups) {
         Intent myIntent = new Intent(currentActivity, MainEmployerActivity.class);
@@ -54,15 +70,31 @@ public class MainEmployerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_employer);
+        listView = findViewById(R.id.ViewListEmployee);
 
         this.getIntentExtraData();
 
-        userViewModel =  ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
+        userViewModel = ViewModelProviders.of(this, new UserViewModelFactory(getApplication()))
                 .get(UserViewModel.class);
         loginViewModel = ViewModelProviders.of(this, new LoginViewModelFactory(getApplication()))
                 .get(LoginViewModel.class);
+        listEmployeeViewModel = ViewModelProviders.of(this, new ListEmployeeModelFactory(getApplication()))
+                .get(ListEmployeeViewModel.class);
+
 
         this.fetchUserProfile();
+        getEmployeeList();
+
+        listView.setClickable(true);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                String o = (String) listView.getItemAtPosition(position);
+                int id = Integer.parseInt(o.split("ID:")[1].trim());
+                EmployeeDataActivity.startActivity(MainEmployerActivity.this, id);
+            }
+        });
 
         TextView textView = findViewById(R.id.textView2);
         for (String groupName : userGroups) {
@@ -70,6 +102,35 @@ public class MainEmployerActivity extends AppCompatActivity {
                 textView.setText(textView.getText() + " i pracownik");
         }
     }
+
+
+    public void getEmployeeList() {
+        listEmployeeViewModel.getEmployeeList(this).first().subscribe(new Observer<EmployeeListResponse>() {
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                // nie udało się trzeba się logować ręcznie
+            }
+
+            @Override
+            public void onNext(EmployeeListResponse employeeListResponse) {
+
+                ArrayList<String> arrayList = new ArrayList<>();
+                for (User u : employeeListResponse.results) {
+                    arrayList.add("NAME: " + u.username + "\nID: " + u.id);
+                }
+
+                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrayList);
+                listView.setAdapter(arrayAdapter);
+                arrayAdapter.notifyDataSetChanged();
+
+            }
+        });
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -97,7 +158,8 @@ public class MainEmployerActivity extends AppCompatActivity {
         // Używając first() nie trzeba wywoływać unsubscribe ale dostajesz wynik jedynie raz
         userViewModel.getProfile(this).first().subscribe(new Observer<User>() {
             @Override
-            public void onCompleted() { }
+            public void onCompleted() {
+            }
 
             @Override
             public void onError(Throwable e) {

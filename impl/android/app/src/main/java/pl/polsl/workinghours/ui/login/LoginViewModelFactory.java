@@ -12,8 +12,8 @@ import pl.polsl.workinghours.data.login.LoginDataSource;
 import pl.polsl.workinghours.data.login.LoginRepository;
 
 /**
- * ViewModel provider factory to instantiate UserViewModel.
- * Required given UserViewModel has a non-empty constructor
+ * ViewModel provider factory to instantiate QrCodeViewModel.
+ * Required given QrCodeViewModel has a non-empty constructor
  */
 public class LoginViewModelFactory extends ViewModelProvider.AndroidViewModelFactory {
 

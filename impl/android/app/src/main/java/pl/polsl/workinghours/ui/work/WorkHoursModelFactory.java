@@ -1,4 +1,4 @@
-package pl.polsl.workinghours.ui.user;
+package pl.polsl.workinghours.ui.work;
 
 import android.app.Application;
 
@@ -8,14 +8,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import pl.polsl.workinghours.data.auth.AuthRepository;
 import pl.polsl.workinghours.data.auth.CredentialDataSource;
-import pl.polsl.workinghours.data.user.UserDataSource;
-import pl.polsl.workinghours.data.user.UserRepository;
+import pl.polsl.workinghours.data.qrcode.QrCodeDataSource;
+import pl.polsl.workinghours.data.qrcode.QrCodeRepository;
+import pl.polsl.workinghours.data.work.WorkDataRepository;
+import pl.polsl.workinghours.data.work.WorkDataSource;
+import pl.polsl.workinghours.ui.qrcode.QrCodeViewModel;
 
 /**
  * ViewModel provider factory to instantiate QrCodeViewModel.
  * Required given QrCodeViewModel has a non-empty constructor
  */
-public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFactory {
+public class WorkHoursModelFactory extends ViewModelProvider.AndroidViewModelFactory {
 
     private Application context;
 
@@ -24,7 +27,7 @@ public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFact
      *
      * @param application an application
      */
-    public UserViewModelFactory(@NonNull Application application) {
+    public WorkHoursModelFactory(@NonNull Application application) {
         super(application);
 
         this.context = application;
@@ -34,12 +37,12 @@ public class UserViewModelFactory extends ViewModelProvider.AndroidViewModelFact
     @Override
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        if (modelClass.isAssignableFrom(UserViewModel.class)) {
-            return (T) new UserViewModel(
+        if (modelClass.isAssignableFrom(WorkHoursViewModel.class)) {
+            return (T) new WorkHoursViewModel(
                     this.context,
-                    UserRepository.getInstance(
-                            new UserDataSource(),
-                            AuthRepository.getInstance(new CredentialDataSource())
+                    WorkDataRepository.getInstance(
+                            AuthRepository.getInstance(new CredentialDataSource()),
+                            new WorkDataSource()
                     ));
         } else {
             throw new IllegalArgumentException("Unknown ViewModel class");
