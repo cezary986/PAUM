@@ -19,6 +19,9 @@ android {
         cm_dom {
             buildConfigField "String" , "API_URL" ,  'http://192.168.1.60:90/paum/api/'
         }
+        ks_dom {
+            buildConfigField "String" , "API_URL" ,  'http://192.168.0.199:90/paum/api/'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
