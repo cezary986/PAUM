@@ -52,7 +52,7 @@ public class EmployeeDataActivity extends AppCompatActivity {
                 int m = Integer.parseInt(times[1]);
                 int d = Integer.parseInt(times[2]);
 
-                if (y==year && m+1==month && d==dayOfMonth) {
+                if (y==year && m==month+1 && d==dayOfMonth) {
                     if (w.finished == null) {
                         arrayList.add(date + "\n" + w.stringToTime(w.started) + "  -  " + "still working");
                     } else {
