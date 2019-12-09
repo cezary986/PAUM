@@ -12,19 +12,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CalendarView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-
+import android.content.Context;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Locale;
+import com.google.gson.Gson;
 
 import pl.polsl.workinghours.data.model.EmployeeListResponse;
 import pl.polsl.workinghours.data.model.User;
-import pl.polsl.workinghours.data.model.WorkHours;
-import pl.polsl.workinghours.data.model.WorkhoursListResponse;
 import pl.polsl.workinghours.ui.errors.DefaultErrorHandler;
 import pl.polsl.workinghours.ui.listemployee.ListEmployeeModelFactory;
 import pl.polsl.workinghours.ui.listemployee.ListEmployeeViewModel;
@@ -38,13 +37,17 @@ import rx.Observer;
 /**
  * Głowna aktywność dla pracodawcy
  */
-public class MainEmployerActivity extends AppCompatActivity {
+public class MainEmployerActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     private static final String USER_GROUPS_EXTRA_KEY = "GROUPS";
 
     private UserViewModel userViewModel;
     private LoginViewModel loginViewModel;
     private ListEmployeeViewModel listEmployeeViewModel;
+    ArrayList<String> arrayList;
+
+    SearchView editsearch;
+    Context context;
     /**
      * Nazwy wszystkich grup do jakich należy użytkownik
      */
@@ -68,6 +71,7 @@ public class MainEmployerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        context = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_employer);
         listView = findViewById(R.id.ViewListEmployee);
@@ -101,6 +105,9 @@ public class MainEmployerActivity extends AppCompatActivity {
             if (groupName.equals(Enviroment.Groups.EMPLOYEE))
                 textView.setText(textView.getText() + " i pracownik");
         }
+
+        editsearch = (SearchView) findViewById(R.id.search);
+        editsearch.setOnQueryTextListener(this);
     }
 
 
@@ -118,7 +125,7 @@ public class MainEmployerActivity extends AppCompatActivity {
             @Override
             public void onNext(EmployeeListResponse employeeListResponse) {
 
-                ArrayList<String> arrayList = new ArrayList<>();
+                arrayList = new ArrayList<>();
                 for (User u : employeeListResponse.results) {
                     arrayList.add("NAME: " + u.username + "\nID: " + u.id);
                 }
@@ -172,4 +179,32 @@ public class MainEmployerActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String charText) {
+        charText = charText.toLowerCase(Locale.getDefault());
+        ArrayList animalNamesList = new ArrayList();
+        animalNamesList.clear();
+        if (charText.length() == 0) {
+            animalNamesList.addAll(arrayList);
+        } else {
+            for (String wp : arrayList) {
+                if (wp.toLowerCase(Locale.getDefault()).contains(charText)) {
+                    animalNamesList.add(wp);
+                }
+            }
+        }
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, animalNamesList);
+        listView.setAdapter(arrayAdapter);
+        arrayAdapter.notifyDataSetChanged();
+       // adapter.filter(text);
+        return false;
+    }
 }
+

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.CalendarView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -26,6 +27,8 @@ import rx.Observer;
 public class EmployeeDataActivity extends AppCompatActivity {
     private WorkHoursViewModel workHoursViewModel;
     private ListView listView;
+    CalendarView simpleCalendarView;
+    WorkHours[] workHours;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +40,32 @@ public class EmployeeDataActivity extends AppCompatActivity {
 
         getWorkHoursForSpecified((int) getIntent().getExtras().get("ID"));
         listView = findViewById(R.id.ViewWorkHoursEmployee);
+        simpleCalendarView = (CalendarView) findViewById(R.id.calendarView);
+        simpleCalendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            // display the selected date by using a toast
 
+            ArrayList<String> arrayList = new ArrayList<>();
+            for (WorkHours w : workHours) {
+                String date = WorkHours.extractDateFromDateTTime(w.started);
+                String[] times = date.split("-");
+                int y = Integer.parseInt(times[0]);
+                int m = Integer.parseInt(times[1]);
+                int d = Integer.parseInt(times[2]);
+
+                if (y==year && m==month+1 && d==dayOfMonth) {
+                    if (w.finished == null) {
+                        arrayList.add(date + "\n" + w.stringToTime(w.started) + "  -  " + "still working");
+                    } else {
+                        arrayList.add(date + "\n" + w.stringToTime(w.started) + "  -  " + w.stringToTime(w.finished));
+                    }
+                }
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrayList);
+            listView.setAdapter(arrayAdapter);
+            arrayAdapter.notifyDataSetChanged();
+
+        });
     }
 
     public static void startActivity(Activity currentActivity, int id) {
@@ -65,7 +93,7 @@ public class EmployeeDataActivity extends AppCompatActivity {
 
             @Override
             public void onNext(WorkhoursListResponse workhoursListResponse) {
-                WorkHours[] workHours = workhoursListResponse.results;
+                workHours = workhoursListResponse.results;
                 Arrays.sort(workHours);
 
                 ArrayList<String> arrayList = new ArrayList<>();

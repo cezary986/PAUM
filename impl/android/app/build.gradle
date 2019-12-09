@@ -12,17 +12,25 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
-        debug {
-            buildConfigField "String" , "API_URL" ,  API_URL
-        }
         // build type dla mojego domowego IP
         cm_dom {
-            buildConfigField "String" , "API_URL" ,  'http://192.168.1.60:90/paum/api/'
+            initWith(buildTypes.debug) // keep versionName and PIN from 'debug'
+            buildConfigField "String" , "API_URL" ,  '"http://192.168.1.60:90/paum/api/"'
+        }
+        // build type dla mojego domowego IP
+        uczelnia {
+            initWith(buildTypes.debug) // keep versionName and PIN from 'debug'
+            buildConfigField "String" , "API_URL" ,  '"http://157.158.202.250:90/paum/api/"'
+            jniDebuggable = true
+        }
+        ks_dom {
+            initWith(buildTypes.debug) // keep versionName and PIN from 'debug'
+            buildConfigField "String" , "API_URL" ,  '"http://192.168.0.199:90/paum/api/"'
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField "String" , "API_URL" ,  'http://192.168.1.60:90/paum/api/'
+            buildConfigField "String" , "API_URL" ,  '"http://192.168.1.60:90/paum/api/"'
         }
     }
     android {
