@@ -1,4 +1,5 @@
 package pl.polsl.workinghours;
+import pl.polsl.workinghours.BuildConfig;
 
 /**
  * Interfejs na wszystkie stałe  tym adresy endpointów w API
